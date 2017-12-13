@@ -62,5 +62,13 @@ namespace BinaryTools
 			}
 			return sb.ToString();
 		}
+		public void SeekCursor(int _cursor)
+		{
+			cursor = _cursor;
+		}
+		public int Cursor
+		{
+			get{return cursor;}
+		}
 	}
 }
