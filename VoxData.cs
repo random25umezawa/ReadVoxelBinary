@@ -1,4 +1,5 @@
 using System;
+using System.Drawing;
 
 namespace BinaryTools
 {
@@ -10,7 +11,10 @@ namespace BinaryTools
 		uint[] palette;
 		int[,] sizes;
 		int[][,] xyzas;
-		int[][,,] danmens;
+		Bitmap[] danmens;
+		Bitmap[][] kaitentai;
+		float startAngle = 45.0F;
+		int angleAmount = 4;
 		public VoxData(BinaryReader _br)
 		{
 
@@ -43,22 +47,59 @@ namespace BinaryTools
 
 			/* MAKE PIXEL DATA START */
 
-			danmens = new int[numModels][,,];
-			for(int model_index = 0; model_index < numModels; model_index++)
+			// danmens
+
+			danmens = new Bitmap[numModels];
+			for(int modelIndex = 0; modelIndex < numModels; modelIndex++)
 			{
-				danmens[model_index] = new int[sizes[model_index,0]*sizes[model_index,2],sizes[model_index,1],4];
-				int[,] voxels = xyzas[model_index];
+				danmens[modelIndex] = new Bitmap(sizes[modelIndex,0]*sizes[modelIndex,2],sizes[modelIndex,1]);
+				int[,] voxels = xyzas[modelIndex];
 				for(int i = 0; i < voxels.Length/4; i++)
 				{
-					danmens[model_index][voxels[i,0]+sizes[model_index,0]*voxels[i,2],voxels[i,1],0] = (int)(palette[voxels[i,3]]>>0)&0xff;
-					danmens[model_index][voxels[i,0]+sizes[model_index,0]*voxels[i,2],voxels[i,1],1] = (int)(palette[voxels[i,3]]>>8)&0xff;
-					danmens[model_index][voxels[i,0]+sizes[model_index,0]*voxels[i,2],voxels[i,1],2] = (int)(palette[voxels[i,3]]>>16)&0xff;
-					danmens[model_index][voxels[i,0]+sizes[model_index,0]*voxels[i,2],voxels[i,1],3] = (int)(palette[voxels[i,3]]>>24)&0xff;
+					Color c = Color.FromArgb
+					(
+						(int)(palette[voxels[i,3]]>>24)&0xff,
+						(int)(palette[voxels[i,3]]>>0)&0xff,
+						(int)(palette[voxels[i,3]]>>8)&0xff,
+						(int)(palette[voxels[i,3]]>>16)&0xff
+					);
+					danmens[modelIndex].SetPixel(voxels[i,0]+sizes[modelIndex,0]*voxels[i,2],voxels[i,1],c);
 				}
 			}
 
+			//kaitentai
+
+			MakeKaitentai();
+
 			/* MAKE PIXEL DATA END */
 
+		}
+		public void MakeKaitentai()
+		{
+			kaitentai = new Bitmap[numModels][];
+			for(int modelIndex = 0; modelIndex < numModels; modelIndex++)
+			{
+				kaitentai[modelIndex] = new Bitmap[angleAmount];
+				for(int angleCount = 0; angleCount < angleAmount; angleCount++)
+				{
+					kaitentai[modelIndex][angleCount] = new Bitmap(sizes[modelIndex,2]*sizes[modelIndex,2],angleAmount*sizes[modelIndex,1]);
+				}
+			}
+			for(int modelIndex = 0; modelIndex < numModels; modelIndex++)
+			{
+				for(int angleCount = 0; angleCount < angleAmount; angleCount++)
+				{
+					float angle = startAngle + 360F*angleCount/angleAmount;
+					for(int z = 0; z < sizes[modelIndex,2]; z++)
+					{
+						Rectangle srcRect = new Rectangle(sizes[modelIndex,2]*z,0,sizes[modelIndex,0],sizes[modelIndex,1]);
+						Rectangle desRect = new Rectangle(sizes[modelIndex,2]*z,angleCount*sizes[modelIndex,1],sizes[modelIndex,0],sizes[modelIndex,1]);
+						Graphics g = Graphics.FromImage(kaitentai[modelIndex][angleCount]);
+						g.DrawImage(danmens[modelIndex],desRect,srcRect,GraphicsUnit.Pixel);
+						g.Dispose();
+					}
+				}
+			}
 		}
 		uint[] GetDefaultPalette()
 		{
@@ -102,9 +143,13 @@ namespace BinaryTools
 		{
 			get{return sizes;}
 		}
-		public int[][,,] Danmens
+		public Bitmap[] Danmens
 		{
 			get{return danmens;}
+		}
+		public Bitmap[][] Kaitentai
+		{
+			get{return kaitentai;}
 		}
 	}
 
