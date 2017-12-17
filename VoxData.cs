@@ -10,8 +10,12 @@ namespace BinaryTools
 		uint[] palette;
 		int[,] sizes;
 		int[][,] xyzas;
+		int[][,,] danmens;
 		public VoxData(BinaryReader _br)
 		{
+
+			/* READ BINARY START */
+
 			type = _br.GetString(4);
 			version = _br.GetValue(4);
 			new ChunkMain(_br);
@@ -34,6 +38,26 @@ namespace BinaryTools
 			palette = GetDefaultPalette();
 
 			//material
+
+			/* READ BINARY END */
+
+			/* MAKE PIXEL DATA START */
+
+			danmens = new int[numModels][,,];
+			for(int model_index = 0; model_index < numModels; model_index++)
+			{
+				danmens[model_index] = new int[sizes[model_index,0]*sizes[model_index,2],sizes[model_index,1],4];
+				int[,] voxels = xyzas[model_index];
+				for(int i = 0; i < voxels.Length/4; i++)
+				{
+					danmens[model_index][voxels[i,0]+sizes[model_index,0]*voxels[i,2],voxels[i,1],0] = (int)(palette[voxels[i,3]]>>0)&0xff;
+					danmens[model_index][voxels[i,0]+sizes[model_index,0]*voxels[i,2],voxels[i,1],1] = (int)(palette[voxels[i,3]]>>8)&0xff;
+					danmens[model_index][voxels[i,0]+sizes[model_index,0]*voxels[i,2],voxels[i,1],2] = (int)(palette[voxels[i,3]]>>16)&0xff;
+					danmens[model_index][voxels[i,0]+sizes[model_index,0]*voxels[i,2],voxels[i,1],3] = (int)(palette[voxels[i,3]]>>24)&0xff;
+				}
+			}
+
+			/* MAKE PIXEL DATA END */
 
 		}
 		uint[] GetDefaultPalette()
@@ -73,6 +97,14 @@ namespace BinaryTools
 		public int[][,] Xyzas
 		{
 			get{return xyzas;}
+		}
+		public int[,] Sizes
+		{
+			get{return sizes;}
+		}
+		public int[][,,] Danmens
+		{
+			get{return danmens;}
 		}
 	}
 
