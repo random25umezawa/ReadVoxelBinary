@@ -82,19 +82,22 @@ namespace BinaryTools
 				kaitentai[modelIndex] = new Bitmap[angleAmount];
 				for(int angleCount = 0; angleCount < angleAmount; angleCount++)
 				{
-					kaitentai[modelIndex][angleCount] = new Bitmap(sizes[modelIndex,2]*sizes[modelIndex,2],angleAmount*sizes[modelIndex,1]);
+					kaitentai[modelIndex][angleCount] = new Bitmap(sizes[modelIndex,0]*2,sizes[modelIndex,1]*2+sizes[modelIndex,2]);
 				}
 			}
 			for(int modelIndex = 0; modelIndex < numModels; modelIndex++)
 			{
 				for(int angleCount = 0; angleCount < angleAmount; angleCount++)
 				{
-					float angle = startAngle + 360F*angleCount/angleAmount;
+					float angle = startAngle + 360.0F*angleCount/angleAmount;
 					for(int z = 0; z < sizes[modelIndex,2]; z++)
 					{
 						Rectangle srcRect = new Rectangle(sizes[modelIndex,2]*z,0,sizes[modelIndex,0],sizes[modelIndex,1]);
-						Rectangle desRect = new Rectangle(sizes[modelIndex,2]*z,angleCount*sizes[modelIndex,1],sizes[modelIndex,0],sizes[modelIndex,1]);
+						Rectangle desRect = new Rectangle(sizes[modelIndex,0]/2,sizes[modelIndex,1]/2,sizes[modelIndex,0],sizes[modelIndex,1]);
 						Graphics g = Graphics.FromImage(kaitentai[modelIndex][angleCount]);
+						g.TranslateTransform(-sizes[modelIndex,0],-sizes[modelIndex,1]);
+						g.RotateTransform(angle, System.Drawing.Drawing2D.MatrixOrder.Append);
+						g.TranslateTransform(sizes[modelIndex,0],sizes[modelIndex,1]+sizes[modelIndex,2]-z, System.Drawing.Drawing2D.MatrixOrder.Append);
 						g.DrawImage(danmens[modelIndex],desRect,srcRect,GraphicsUnit.Pixel);
 						g.Dispose();
 					}
